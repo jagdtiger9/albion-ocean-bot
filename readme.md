@@ -1,17 +1,10 @@
-# AO-Killboard
+# Albion Ocean bot
 
-A discord bot for Albion Online's kill board
-
-## Getting Started
-
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
-
+A discord bot for Albion
 
 ### Usage
 
-* !ping - replies with @user pong
-* !kbclear - deletes all messages in the config.botChannel
-* !kbinfo <eventId> - displays the kill board post for a specific kill to the current channel
+* !register UserName
 
 ### Prerequisites
 
@@ -32,8 +25,6 @@ These instructions will get you a copy of the project up and running on your loc
 * **To add the bot to your server**: Visit [https://discordapp.com/oauth2/authorize?client_id={YOUR CLIENT ID}](https://discordapp.com/oauth2/authorize?client_id=#)
 Example: [https://discordapp.com/api/oauth2/authorize?client_id=347919794504335362&permissions=2048&scope=bot](https://discordapp.com/oauth2/authorize?client_id=#)
 
-#### * to only display Guild kills and not alliance, set allianceName to something that cannot exist i.e <NONE>
-
 ##### Example: config.json
 
 --
@@ -41,20 +32,17 @@ Example: [https://discordapp.com/api/oauth2/authorize?client_id=3479197945043353
 ```json
 {
     "cmdPrefix": "!",
-    "allianceName": "<NONE>",
-    "guildName": "8-bit",
-    "username": "AO-Killbot",
+    "guildName": "OCEAN",
+    "username": "Albion bot",
     "admins": [
-        "224865398034079430"
+        "....."
     ],
-    "botChannel": "445822300890946337",
-    "playingGame": "Albion Killboard Bot",
-    "token": "zMznafHXfbgaD3k0.hYN.CDTzsMHXz_35MNMiGyLOT-8EoQotgEs10iZAa7"
+    "botChannel": ".....",
+    "playingGame": "Albion bot",
+    "token": "....."
 }
 
 ```
-
-### Built With
 
 * [Discord.js](https://github.com/hydrabolt/discord.js/) - Discord app library for Node.js and browsers.
 * [Request](https://github.com/request/request) - Simplified HTTP client

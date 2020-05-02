@@ -1,15 +1,14 @@
 {
-  "name": "ao-oceanbot",
+  "name": "albion-ocean-bot",
   "version": "1.0.0",
   "description": "Albion Ocean discord bot",
   "main": "ao-oceanbot.js",
   "author": "Aljerom",
   "repository": {
     "type": "git",
-    "url": "https://jagdtiger9@github.com/jagdtiger9/ao-oceanbot.git"
+    "url": "https://jagdtiger9@github.com/jagdtiger9/albion-ocean-bot.git"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js"
   },
   "dependencies": {
