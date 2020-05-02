@@ -1,23 +1,24 @@
+const fs = require('fs');
+const commandInfo = fs.readFileSync('./help.md', 'utf8');
 const config = require('./config.json');
 const Discord = require('discord.js');
 const request = require('request');
 
 /**
- * Auth discord user at ocean-albion.ru
+ * Send Bot help message
  * @param message
  * @param args
  */
-let auth = function auth(message, args = []) {
-    /*request({
-        uri: 'https://gameinfo.albiononline.com/api/gameinfo/events?limit=' + limit + '&offset=' + offset,
-        json: true
-    }, function (error, response, body) {
-        if (!error && response.statusCode === 200) {
-            parseKills(body);
-        } else {
-            console.log('Error: ', error); // Log the error
-        }
-    });*/
+let help = function help(message) {
+    const embed = new Discord.MessageEmbed()
+        // Set the title of the field
+        .setTitle('Добрая дорога!')
+        // Set the color of the embed
+        .setColor(0xff0000)
+        // Set the main content of the embed
+        .setDescription(commandInfo);
+
+    message.author.send(embed);
 }
 
 /**
@@ -25,14 +26,23 @@ let auth = function auth(message, args = []) {
  * @param message
  * @param args
  */
+let auth = function auth(message, args = []) {
+    notifyAuthor(message, 'Команда auth', 'Возможно, она будет делать что-нибудь полезное');
+/*
+console.log(message.channel.guild.members);
+console.log(message.channel.guild.roles.find());
+console.log(message.channel.guild.roles);
+console.log(message.member);
+console.log(args);
+*/
+}
+
+/**
+ * Register discord user at ocean-albion.ru
+ * @param message
+ * @param args
+ */
 let register = function register(message, args = []) {
-    /*
-    console.log(message.channel.guild.members);
-    console.log(message.channel.guild.roles.find());
-    console.log(message.channel.guild.roles);
-    console.log(message.member);
-    console.log(args);
-    */
     request.post({
         headers: {
             'content-type': 'application/json',
@@ -50,18 +60,18 @@ let register = function register(message, args = []) {
             const apiResponse = JSON.parse(body);
             console.log(apiResponse);
             if (apiResponse.status) {
-                notifyRegUser(message, 'Поздравляем!', apiResponse.result);
-                notifyRegAdmin(message, 'Новая регистрация в ocean-albion.ru', adminMessage);
+                notifyAuthor(message, 'Поздравляем!', apiResponse.result);
+                notifyAdmin(message, 'Новая регистрация в ocean-albion.ru', adminMessage);
             } else {
-                notifyRegUser(message, 'Ошибка регистрации', apiResponse.result);
-                notifyRegAdmin(message, 'Ошибка регистрации', `${apiResponse.result}\n${adminMessage}`);
+                notifyAuthor(message, 'Ошибка регистрации', apiResponse.result);
+                notifyAdmin(message, 'Ошибка регистрации', `${apiResponse.result}\n${adminMessage}`);
             }
         } else {
             console.log('Error: ', error);
             let title = 'Ошибка регистрации';
             let info = 'Ветеранская диверсия, сервис недоступен';
-            notifyRegUser(message, title, info);
-            notifyRegAdmin(message, title, error);
+            notifyAuthor(message, title, info);
+            notifyAdmin(message, title, error);
         }
     });
 }
@@ -172,7 +182,7 @@ function sendCtaFormatMessage(message, description) {
     message.author.send(embed);
 }
 
-function notifyRegUser(message, title, description) {
+function notifyAuthor(message, title, description) {
     const embed = new Discord.MessageEmbed()
         // Set the title of the field
         .setTitle(title)
@@ -183,7 +193,7 @@ function notifyRegUser(message, title, description) {
     message.author.send(embed);
 }
 
-function notifyRegAdmin(message, title, description) {
+function notifyAdmin(message, title, description) {
     const embed = new Discord.MessageEmbed()
         // Set the title of the field
         .setTitle(title)
@@ -205,3 +215,4 @@ module.exports.auth = auth;
 module.exports.cta = cta;
 module.exports.clear = clear;
 module.exports.register = register;
+module.exports.help = help;

@@ -1,0 +1,15 @@
+[Unit]
+Description=Albion Ocean bot
+
+[Service]
+ExecStart=/var/www/se/discord/albion-ocean-bot/systemd.js
+Restart=always
+User=se
+# Note Debian/Ubuntu uses 'nogroup', RHEL/Fedora uses 'nobody'
+Group=se
+Environment=PATH=/usr/local/bin:/usr/bin
+Environment=NODE_ENV=production
+WorkingDirectory=/var/www/se/discord/albion-ocean-bot
+
+[Install]
+WantedBy=multi-user.target

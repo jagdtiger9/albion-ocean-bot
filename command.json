@@ -1,0 +1,22 @@
+[
+    {
+        "command": "!ao.help",
+        "info": "Вывод данного сообщения справки",
+        "example": ""
+    },
+    {
+        "command": "!ao.register",
+        "info": "Привязка учетной записи discord к игровому нику через [ocean-albion.ru](https://ocean-albion.ru)",
+        "example": "!ao.register nickname - основной персонаж\n!ao.register +nickname - твинк (+ перед ником)\n__nickname__ - игровой ник"
+    },
+    {
+        "command": "!ao.cta",
+        "info": "Регистрация КТА активности\nВ разработке",
+        "example": ""
+    },
+    {
+        "command": "!ao.clear",
+        "info": "Удаление сообщений канала. Функция доступна только модераторам",
+        "example": ""
+    }
+]

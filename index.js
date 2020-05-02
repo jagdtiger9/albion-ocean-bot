@@ -1,11 +1,14 @@
 // https://blog.insiderattack.net/working-with-multiple-nodejs-versions-85c8eef7a600
 // npm install -g n
 // n 8.11.3
-// n - переключение версии, для magicpro 8.11.2
+// n - переключение версии, для php-env 8.11.2
 //
 // Emoji
 // https://discordjs.guide/popular-topics/reactions.html#reacting-to-messages
 // https://github.com/AnIdiotsGuide/discordjs-bot-guide/blob/master/coding-guides/using-emojis.md
+//
+// Разметочка
+// https://www.writebots.com/discord-text-formatting/
 
 // Define static constants
 const config = require('./config.json');
@@ -36,15 +39,20 @@ client.on('ready', () => {
  */
 client.on('message', message => {
     let channelID = message.channel.id;
-
+    if (config.botChannel !== channelID) {
+        return;
+    }
     if (message.content.indexOf(config.cmdPrefix) !== 0 || message.author.bot) {
         return;
     }
-    // Execute command!
+
+    // Parse-run command
     let args = message.content.slice(config.cmdPrefix.length).trim().split(/\n|\s/g);
     let command = args.shift().toLowerCase();
 
-    if (command === 'auth') {
+    if (command === 'help') {
+        oceanlib.help(message);
+    } else if (command === 'auth') {
         oceanlib.auth(message, args);
     } else if (command === 'register') {
         oceanlib.register(message, args);
