@@ -7,5 +7,6 @@
 	],
 	"botChannel": ".....",
 	"playingGame": "Albion Online",
-	"token": "....."
+	"botToken": ".....",
+	"apiToken": "..."
 }

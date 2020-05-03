@@ -2,7 +2,7 @@
   "name": "albion-ocean-bot",
   "version": "1.0.0",
   "description": "Albion Ocean discord bot",
-  "main": "ao-oceanbot.js",
+  "main": "index.js",
   "author": "Aljerom",
   "repository": {
     "type": "git",

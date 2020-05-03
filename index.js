@@ -10,13 +10,9 @@
 // Разметочка
 // https://www.writebots.com/discord-text-formatting/
 
-// Define static constants
 const config = require('./config.json');
-
-// Require modules
 const Discord = require('discord.js');
 const client = new Discord.Client({partials: ['MESSAGE', 'REACTION']});
-
 const oceanlib = require('./oceanlib.js');
 
 /**
@@ -46,7 +42,7 @@ client.on('message', message => {
         return;
     }
 
-    // Parse-run command
+    // Parse command arguments
     let args = message.content.slice(config.cmdPrefix.length).trim().split(/\n|\s/g);
     let command = args.shift().toLowerCase();
 
@@ -121,10 +117,10 @@ client.on('messageReactionRemove', async (reaction, user) => {
 });
 
 if (typeof config !== 'undefined') {
-    if (config.token) {
-        client.login(config.token);
+    if (config.botToken) {
+        client.login(config.botToken);
     } else {
-        console.log("ERROR: No bot token defined")
+        console.log("ERROR: Bot token undefined")
     }
 } else {
     console.log("ERROR: No config file")
