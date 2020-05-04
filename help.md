@@ -5,7 +5,7 @@
 
 
 > **!ao.register**
-Привязка учетной записи discord к игровому нику, [ocean-albion.ru](https://ocean-albion.ru/members?guild=OCEAN)
+Привязка учетной записи discord к игровому нику
 ```diff
 // nickname - игровой ник
 // Регистрация основного персонаж
