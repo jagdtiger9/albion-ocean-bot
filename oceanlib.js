@@ -22,6 +22,7 @@ let help = function help(message) {
 
     message.author.send(embed);
 }
+module.exports.help = help;
 
 /**
  * Register discord user at ocean-albion.ru
@@ -38,8 +39,14 @@ let register = function register(message, args = []) {
     apiRequest('post', '/api/albion/discordRegister', params).then(
         apiResponse => {
             if (apiResponse.status) {
-                notifyAuthor(message, 'Поздравляем!', apiResponse.result);
-                notifyAdmin(message, 'Новая регистрация в ocean-albion.ru', adminMessage);
+                notifyAuthor(
+                    message,
+                    'Поздравляем!',
+                    `${apiResponse.result}\nЗаявка будет рассмотрена в течение 10 минут`);
+                notifyAdmin(message,
+                    'Новая регистрация в ocean-albion.ru',
+                    `[Подтвердить регистрацию](https://ocean-albion.ru/management/discord)\n${adminMessage}`
+                );
             } else {
                 notifyAuthor(message, 'Ошибка регистрации', apiResponse.result);
                 notifyAdmin(message, 'Ошибка регистрации', `${apiResponse.result}\n${adminMessage}`);
@@ -54,6 +61,7 @@ let register = function register(message, args = []) {
         }
     );
 }
+module.exports.register = register;
 
 /**
  * Get new password for ocean-albion.ru
@@ -70,12 +78,12 @@ let password = function password(message, args = []) {
             if (apiResponse.status) {
                 notifyAuthor(
                     message,
-                    'Поздравляем!',
+                    'Доступ получен',
                     `[ocean-albion.ru](https://ocean-albion.ru)\nЛогин: ${args[0]}\nПароль: ${apiResponse.result.password}`
                 );
                 notifyAdmin(message, 'Сброс пароля', adminMessage);
             } else {
-                notifyAuthor(message, 'Ошибка', apiResponse.result);
+                notifyAuthor(message, 'Ошибка получения доступа', apiResponse.result);
                 notifyAdmin(message, 'Ошибка получения пароля', `${apiResponse.result}\n${adminMessage}`);
             }
         },
@@ -88,6 +96,18 @@ let password = function password(message, args = []) {
         }
     );
 }
+module.exports.password = password;
+
+
+/**
+ * Update discord nicknames at ocean-albion.ru
+ * @param message
+ * @param args
+ */
+let updateDb = function updateDb(message, args = []) {
+    notifyAuthor(message, 'Команда updateDb', 'Доступна только администраторам');
+}
+module.exports.updateDb = updateDb;
 
 /**
  * Auth discord user at ocean-albion.ru
@@ -104,6 +124,7 @@ let auth = function auth(message, args = []) {
     console.log(args);
     */
 }
+module.exports.auth = auth;
 
 /**
  * Register guild CTA activity
@@ -148,9 +169,10 @@ let cta = function cta(message, args = []) {
     // Api.registerEvent(message.author.username, args[0], ctaTime.getTime());
     message.react('🆗');
 }
+module.exports.cta = cta;
 
 let clear = function clear(message) {
-    if (config.admins.includes(message.author.id) && message.channel.id === config.botChannel) {
+    if (config.admins.includes(message.author.id) && message.channel.id === config.botChannel.main) {
         message.channel.send('Clearing Killboard').then(msg => {
             msg.channel.messages.fetch().then(messages => {
                 message.channel.bulkDelete(messages);
@@ -159,6 +181,7 @@ let clear = function clear(message) {
         })
     }
 }
+module.exports.clear = clear;
 
 function apiRequest(method, apiUrl, query) {
     return new Promise((resolve, reject) => {
@@ -269,10 +292,3 @@ function notifyAdmin(message, title, description) {
             .catch(error => console.log(error));
     });
 }
-
-module.exports.auth = auth;
-module.exports.cta = cta;
-module.exports.clear = clear;
-module.exports.register = register;
-module.exports.help = help;
-module.exports.password = password;

@@ -32,7 +32,7 @@ client.on('ready', () => {
 
 client.on('message', message => {
     let channelID = message.channel.id;
-    if (config.botChannel !== channelID) {
+    if (config.botChannel.main !== channelID) {
         return;
     }
     if (message.content.indexOf(config.cmdPrefix) !== 0 || message.author.bot) {
@@ -55,6 +55,9 @@ client.on('message', message => {
         case 'password':
             oceanlib.password(message, args);
             break;
+        case 'updateDb':
+            oceanlib.updateDb(message, args);
+            break;
         case 'cta':
             oceanlib.cta(message, args);
             break;
@@ -74,6 +77,11 @@ client.on('message', message => {
 });
 
 client.on('messageReactionAdd', async (reaction, user) => {
+    let channelID = reaction.message.channel.id;
+    if (config.botChannel.cta !== channelID) {
+        return;
+    }
+
     console.log(reaction.emoji.name, '🆗');
     if (reaction.me) {
         return;
@@ -104,7 +112,13 @@ client.on('messageReactionAdd', async (reaction, user) => {
     // The reaction is now also fully available and the properties will be reflected accurately:
     console.log(`${reaction.count} user(s) have given the same reaction to this message!`);
 });
+
 client.on('messageReactionRemove', async (reaction, user) => {
+    let channelID = reaction.message.channel.id;
+    if (config.botChannel.cta !== channelID) {
+        return;
+    }
+
     // When we receive a reaction we check if the reaction is partial or not
     if (reaction.partial) {
         // If the message this reaction belongs to was removed the fetching might result in an API error, which we need to handle

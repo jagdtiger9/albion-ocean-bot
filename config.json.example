@@ -5,7 +5,10 @@
 	"admins": [
 		"....."
 	],
-	"botChannel": ".....",
+	"botChannel": {
+	    "main": ".....",
+	    "cta": "....."
+	},
 	"playingGame": "Albion Online",
 	"botToken": ".....",
 	"apiToken": "..."
