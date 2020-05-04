@@ -60,7 +60,7 @@ let register = function register(message, args = []) {
  * @param message
  */
 let password = function password(message, args = []) {
-    let adminMessage = `Пользователь ${message.author.username}`;
+    let adminMessage = `Пользователь ${message.author.username}, ник ${args[0]}`;
     let params = {
         'id': message.author.id,
         'albionName': args[0]
@@ -68,7 +68,11 @@ let password = function password(message, args = []) {
     apiRequest('get', '/api/albion/resetPasswordDiscord', params).then(
         apiResponse => {
             if (apiResponse.status) {
-                notifyAuthor(message, 'Поздравляем!', 'Пароль успешно установлен');
+                notifyAuthor(
+                    message,
+                    'Поздравляем!',
+                    `[ocean-albion.ru](https://ocean-albion.ru)\nЛогин: ${args[0]}\nПароль: ${apiResponse.result.password}`
+                );
                 notifyAdmin(message, 'Сброс пароля', adminMessage);
             } else {
                 notifyAuthor(message, 'Ошибка', apiResponse.result);
@@ -158,17 +162,16 @@ let clear = function clear(message) {
 
 function apiRequest(method, apiUrl, query) {
     return new Promise((resolve, reject) => {
-        let headers = [];
-        let body = [];
+        let headers = {
+            'accept': 'application/json'
+        };
+        let body = '';
         let url = baseApiUrl + apiUrl;
         if (method === 'post') {
-            headers = {
-                'content-type': 'application/json',
-                'accept': 'application/json',
-            };
+            headers['content-type'] = 'application/json';
             body = JSON.stringify(query);
         } else {
-            url += query ? '?' + query.map((param) => param.join('=')).join('&') : '';
+            url += query ? '?' + Object.entries(query).map((param) => param.join('=')).join('&') : '';
         }
         request({
             method: method,

@@ -8,7 +8,6 @@
 Привязка учетной записи discord к игровому нику, [ocean-albion.ru](https://ocean-albion.ru/members?guild=OCEAN)
 ```diff
 // nickname - игровой ник
- 
 // Регистрация основного персонаж
 !ao.register nickname
 
@@ -20,7 +19,7 @@
 Получение пароля для доступа к [ocean-albion.ru](https://ocean-albion.ru) 
 ```diff
 // Получение пароля для указанного игрового ника
-// предварительно ник должен быть зарегистрирован командой !ao.register nickname
+// Ник должен быть зарегистрирован, !ao.register nickname
 !ao.password nickname
 ```
 

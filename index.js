@@ -68,7 +68,7 @@ client.on('message', message => {
             message.react('🆗');
             break;
         case 'clear':
-            oceanlib.clear(message);
+            //oceanlib.clear(message);
             break;
     }
 });
