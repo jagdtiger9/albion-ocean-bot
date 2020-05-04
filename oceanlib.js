@@ -4,6 +4,8 @@ const config = require('./config.json');
 const Discord = require('discord.js');
 const request = require('request');
 
+const baseApiUrl = 'https://ocean-albion.ru';
+
 /**
  * Send Bot help message
  * @param message
@@ -22,43 +24,19 @@ let help = function help(message) {
 }
 
 /**
- * Auth discord user at ocean-albion.ru
- * @param message
- * @param args
- */
-let auth = function auth(message, args = []) {
-    notifyAuthor(message, 'Команда auth', 'Возможно, она будет делать что-нибудь полезное');
-/*
-console.log(message.channel.guild.members);
-console.log(message.channel.guild.roles.find());
-console.log(message.channel.guild.roles);
-console.log(message.member);
-console.log(args);
-*/
-}
-
-/**
  * Register discord user at ocean-albion.ru
  * @param message
  * @param args
  */
 let register = function register(message, args = []) {
-    request.post({
-        headers: {
-            'content-type': 'application/json',
-            'accept': 'application/json',
-        },
-        url: 'https://ocean-albion.ru/api/albion/discordRegister',
-        body: JSON.stringify({
-            'discordId': message.author.id,
-            'discordName': message.author.username,
-            'albionName': args[0]
-        })
-    }, function (error, response, body) {
-        let adminMessage = `Пользователь ${message.author.username}, регистрационный ник ${args[0]}`;
-        if (!error && response.statusCode === 200) {
-            const apiResponse = JSON.parse(body);
-            console.log(apiResponse);
+    let adminMessage = `Пользователь ${message.author.username}, регистрационный ник ${args[0]}`;
+    let params = {
+        'discordId': message.author.id,
+        'discordName': message.author.username,
+        'albionName': args[0]
+    };
+    apiRequest('post', '/api/albion/discordRegister', params).then(
+        apiResponse => {
             if (apiResponse.status) {
                 notifyAuthor(message, 'Поздравляем!', apiResponse.result);
                 notifyAdmin(message, 'Новая регистрация в ocean-albion.ru', adminMessage);
@@ -66,14 +44,61 @@ let register = function register(message, args = []) {
                 notifyAuthor(message, 'Ошибка регистрации', apiResponse.result);
                 notifyAdmin(message, 'Ошибка регистрации', `${apiResponse.result}\n${adminMessage}`);
             }
-        } else {
+        },
+        error => {
             console.log('Error: ', error);
             let title = 'Ошибка регистрации';
             let info = 'Ветеранская диверсия, сервис недоступен';
             notifyAuthor(message, title, info);
             notifyAdmin(message, title, error);
         }
-    });
+    );
+}
+
+/**
+ * Get new password for ocean-albion.ru
+ * @param message
+ */
+let password = function password(message, args = []) {
+    let adminMessage = `Пользователь ${message.author.username}`;
+    let params = {
+        'id': message.author.id,
+        'albionName': args[0]
+    };
+    apiRequest('get', '/api/albion/resetPasswordDiscord', params).then(
+        apiResponse => {
+            if (apiResponse.status) {
+                notifyAuthor(message, 'Поздравляем!', 'Пароль успешно установлен');
+                notifyAdmin(message, 'Сброс пароля', adminMessage);
+            } else {
+                notifyAuthor(message, 'Ошибка', apiResponse.result);
+                notifyAdmin(message, 'Ошибка получения пароля', `${apiResponse.result}\n${adminMessage}`);
+            }
+        },
+        error => {
+            console.log('Error: ', error);
+            let title = 'Ошибка получения пароля';
+            let info = 'Ветеранская диверсия, сервис недоступен';
+            notifyAuthor(message, title, info);
+            notifyAdmin(message, title, error);
+        }
+    );
+}
+
+/**
+ * Auth discord user at ocean-albion.ru
+ * @param message
+ * @param args
+ */
+let auth = function auth(message, args = []) {
+    notifyAuthor(message, 'Команда auth', 'Возможно, она будет делать что-нибудь полезное');
+    /*
+    console.log(message.channel.guild.members);
+    console.log(message.channel.guild.roles.find());
+    console.log(message.channel.guild.roles);
+    console.log(message.member);
+    console.log(args);
+    */
 }
 
 /**
@@ -129,6 +154,37 @@ let clear = function clear(message) {
             })
         })
     }
+}
+
+function apiRequest(method, apiUrl, query) {
+    return new Promise((resolve, reject) => {
+        let headers = [];
+        let body = [];
+        let url = baseApiUrl + apiUrl;
+        if (method === 'post') {
+            headers = {
+                'content-type': 'application/json',
+                'accept': 'application/json',
+            };
+            body = JSON.stringify(query);
+        } else {
+            url += query ? '?' + query.map((param) => param.join('=')).join('&') : '';
+        }
+        request({
+            method: method,
+            headers: headers,
+            url: url,
+            body: body
+        }, function (error, response, body) {
+            if (!error && response.statusCode === 200) {
+                const apiResponse = JSON.parse(body);
+                console.log(apiResponse);
+                resolve(apiResponse);
+            } else {
+                reject(error);
+            }
+        })
+    });
 }
 
 function validateTime(time) {
@@ -216,3 +272,4 @@ module.exports.cta = cta;
 module.exports.clear = clear;
 module.exports.register = register;
 module.exports.help = help;
+module.exports.password = password;

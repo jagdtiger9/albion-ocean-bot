@@ -30,9 +30,6 @@ client.on('ready', () => {
     client.user.setActivity(config.playingGame);
 });
 
-/**
- * On receive message
- */
 client.on('message', message => {
     let channelID = message.channel.id;
     if (config.botChannel !== channelID) {
@@ -45,25 +42,34 @@ client.on('message', message => {
     // Parse command arguments
     let args = message.content.slice(config.cmdPrefix.length).trim().split(/\n|\s/g);
     let command = args.shift().toLowerCase();
+    switch (command) {
+        case 'help':
+            oceanlib.help(message);
+            break;
+        case 'auth':
+            oceanlib.auth(message, args);
+            break;
+        case 'register':
+            oceanlib.register(message, args);
+            break;
+        case 'password':
+            oceanlib.password(message, args);
+            break;
+        case 'cta':
+            oceanlib.cta(message, args);
+            break;
+        case 'ok':
+            console.log(message.guild.emojis.cache);
+            const emoji = message.guild.emojis.cache.find(emoji => emoji.name === 'crossed_swords');
+            console.log(emoji);
+            message.guild.emojis.cache.map(emoji => console.log(emoji.name));
 
-    if (command === 'help') {
-        oceanlib.help(message);
-    } else if (command === 'auth') {
-        oceanlib.auth(message, args);
-    } else if (command === 'register') {
-        oceanlib.register(message, args);
-    } else if (command === 'cta') {
-        oceanlib.cta(message, args);
-    } else if (command === 'ok') {
-        console.log(message.guild.emojis.cache);
-        const emoji = message.guild.emojis.cache.find(emoji => emoji.name === 'crossed_swords');
-        console.log(emoji);
-        message.guild.emojis.cache.map(emoji => console.log(emoji.name));
-
-        //message.reply('ko');
-        message.react('🆗');
-    } else if (command === 'clear') {
-        oceanlib.clear(message);
+            //message.reply('ko');
+            message.react('🆗');
+            break;
+        case 'clear':
+            oceanlib.clear(message);
+            break;
     }
 });
 

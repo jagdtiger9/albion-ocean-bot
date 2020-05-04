@@ -16,6 +16,14 @@
 !ao.register +nickname
 ```
 
+> **!ao.password**
+Получение пароля для доступа к [ocean-albion.ru](https://ocean-albion.ru) 
+```diff
+// Получение пароля для указанного игрового ника
+// предварительно ник должен быть зарегистрирован командой !ao.register nickname
+!ao.password nickname
+```
+
 > **!ao.cta**
 Регистрация КТА активности
 ```diff
