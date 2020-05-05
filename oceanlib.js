@@ -98,18 +98,22 @@ function notifyAuthor(message, title, description) {
     message.author.send(embed);
 }
 
-function notifyAdmin(message, title, description) {
+function notifyAdmin(message, title, description, moderateAuthLink) {
     const embed = new Discord.MessageEmbed()
         // Set the title of the field
         .setTitle(title)
         // Set the color of the embed
-        .setColor(0xff0000)
-        // Set the main content of the embed
-        .setDescription(description);
+        .setColor(0xff0000);
     config.admins.map(adminId => {
         message.guild.members.fetch(adminId)
             .then(guildMember => {
-                console.log(guildMember.user);
+                console.log(moderateAuthLink, guildMember.user);
+                if (moderateAuthLink) {
+                    description += `\n---\n[Вход без пароля](${baseApiUrl}${moderateAuthLink}/${guildMember.user.id})\n` +
+                        `Ссылка актуальна в течение 10 минут`
+                }
+                embed.setDescription(description);
+
                 guildMember.user.send(embed);
             })
             .catch(error => console.log(error));
@@ -156,7 +160,8 @@ let register = function register(message, args = []) {
                     `${apiResponse.result.message}\nЗаявка будет рассмотрена в течение 10 минут`);
                 notifyAdmin(message,
                     'Новая регистрация в ocean-albion.ru',
-                    `[Подтвердить регистрацию](${apiResponse.result.moderateLink})\n${adminMessage}`
+                    `[Подтвердить регистрацию](${baseApiUrl}${apiResponse.result.moderateLink})\n${adminMessage}`,
+                    apiResponse.result.moderateAuthLink
                 );
             } else {
                 notifyAuthor(message, 'Ошибка регистрации', apiResponse.result);
