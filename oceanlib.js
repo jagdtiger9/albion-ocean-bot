@@ -107,12 +107,12 @@ function notifyAdmin(message, title, description, moderateAuthLink) {
     config.admins.map(adminId => {
         message.guild.members.fetch(adminId)
             .then(guildMember => {
-                console.log(moderateAuthLink, guildMember.user);
+                let hashLoginData = '';
                 if (moderateAuthLink) {
-                    description += `\n---\n[Вход без пароля](${baseApiUrl}${moderateAuthLink}/${guildMember.user.id})\n` +
+                    hashLoginData = `\n---\n[Вход без пароля](${baseApiUrl}${moderateAuthLink}/${guildMember.user.id})\n` +
                         `Ссылка актуальна в течение 10 минут`
                 }
-                embed.setDescription(description);
+                embed.setDescription(description + hashLoginData);
 
                 guildMember.user.send(embed);
             })
