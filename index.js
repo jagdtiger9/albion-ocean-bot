@@ -11,9 +11,9 @@
 // https://www.writebots.com/discord-text-formatting/
 
 const config = require('./config.json');
+const oceanlib = require('./oceanlib.js');
 const Discord = require('discord.js');
 const client = new Discord.Client({partials: ['MESSAGE', 'REACTION']});
-const oceanlib = require('./oceanlib.js');
 
 /**
  * Wait until ready and logged in

@@ -6,6 +6,116 @@ const request = require('request');
 
 const baseApiUrl = 'https://ocean-albion.ru';
 
+function apiRequest(method, apiUrl, query) {
+    return new Promise((resolve, reject) => {
+        let headers = {
+            'accept': 'application/json'
+        };
+        let body = '';
+        let url = baseApiUrl + apiUrl;
+        if (method === 'post') {
+            headers['content-type'] = 'application/json';
+            body = JSON.stringify(query);
+        } else {
+            url += query ? '?' + Object.entries(query).map((param) => param.join('=')).join('&') : '';
+        }
+        request({
+            method: method,
+            headers: headers,
+            url: url,
+            body: body
+        }, function (error, response, body) {
+            if (!error && response.statusCode === 200) {
+                const apiResponse = JSON.parse(body);
+                console.log(apiResponse);
+                resolve(apiResponse);
+            } else {
+                reject(error);
+            }
+        })
+    });
+}
+
+function validateTime(time) {
+    const timeReg = /^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/
+    let timeRes = time.match(timeReg);
+    if (!timeRes) {
+        return false;
+    }
+
+    return `${time}:00`;
+}
+
+function validateDate(date) {
+    if (!date) {
+        return new Date().toISOString().slice(0, 10);
+    }
+
+    const dateReg = /^(\d+)\.(\d+)\.?(\d*)$/
+    let dateRes = date.match(dateReg);
+    if (!dateRes) {
+        return false;
+    }
+
+    return [
+        (dateRes[3] ? dateRes[3] : (new Date()).getFullYear()),
+        dateRes[2],
+        dateRes[1]
+    ].join('-');
+}
+
+function sendCtaFormatMessage(message, description) {
+    const embed = new Discord.MessageEmbed()
+        // Set the title of the field
+        .setTitle('Ошибка регистрации КТА')
+        // Set the color of the embed
+        .setColor(0xff0000)
+        // Set the main content of the embed
+        .setDescription(description)
+        .addField('Формат сообщения', 'Команда - **!cta**\n' +
+            'Название КТА - **Произвольная строка**\n' +
+            'Время, дата (не обяз.) - **чч:мм дд.мм.гггг**')
+        .addField('Пример', '**!cta**\n' +
+            '**КТА, реклайм 31.12**\n' +
+            '**21:00 31.12.2019**')
+        .addField('или', '**!cta**\n' +
+            '**КТА, защита клайма 31.12**\n' +
+            '**21:00**')
+        .addField('или', '**!cta**\n' +
+            '**КТА, защита клайма 31.12**');
+    // Send the embed to the same channel as the message
+    message.author.send(embed);
+}
+
+function notifyAuthor(message, title, description) {
+    const embed = new Discord.MessageEmbed()
+        // Set the title of the field
+        .setTitle(title)
+        // Set the color of the embed
+        .setColor(0xff0000)
+        // Set the main content of the embed
+        .setDescription(description);
+    message.author.send(embed);
+}
+
+function notifyAdmin(message, title, description) {
+    const embed = new Discord.MessageEmbed()
+        // Set the title of the field
+        .setTitle(title)
+        // Set the color of the embed
+        .setColor(0xff0000)
+        // Set the main content of the embed
+        .setDescription(description);
+    config.admins.map(adminId => {
+        message.guild.members.fetch(adminId)
+            .then(guildMember => {
+                console.log(guildMember.user);
+                guildMember.user.send(embed);
+            })
+            .catch(error => console.log(error));
+    });
+}
+
 /**
  * Send Bot help message
  * @param message
@@ -39,13 +149,14 @@ let register = function register(message, args = []) {
     apiRequest('post', '/api/albion/discordRegister', params).then(
         apiResponse => {
             if (apiResponse.status) {
+                console.log(apiResponse);
                 notifyAuthor(
                     message,
                     'Поздравляем!',
-                    `${apiResponse.result}\nЗаявка будет рассмотрена в течение 10 минут`);
+                    `${apiResponse.result.message}\nЗаявка будет рассмотрена в течение 10 минут`);
                 notifyAdmin(message,
                     'Новая регистрация в ocean-albion.ru',
-                    `[Подтвердить регистрацию](https://ocean-albion.ru/management/discord)\n${adminMessage}`
+                    `[Подтвердить регистрацию](${apiResponse.result.moderateLink})\n${adminMessage}`
                 );
             } else {
                 notifyAuthor(message, 'Ошибка регистрации', apiResponse.result);
@@ -182,113 +293,3 @@ let clear = function clear(message) {
     }
 }
 module.exports.clear = clear;
-
-function apiRequest(method, apiUrl, query) {
-    return new Promise((resolve, reject) => {
-        let headers = {
-            'accept': 'application/json'
-        };
-        let body = '';
-        let url = baseApiUrl + apiUrl;
-        if (method === 'post') {
-            headers['content-type'] = 'application/json';
-            body = JSON.stringify(query);
-        } else {
-            url += query ? '?' + Object.entries(query).map((param) => param.join('=')).join('&') : '';
-        }
-        request({
-            method: method,
-            headers: headers,
-            url: url,
-            body: body
-        }, function (error, response, body) {
-            if (!error && response.statusCode === 200) {
-                const apiResponse = JSON.parse(body);
-                console.log(apiResponse);
-                resolve(apiResponse);
-            } else {
-                reject(error);
-            }
-        })
-    });
-}
-
-function validateTime(time) {
-    const timeReg = /^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/
-    let timeRes = time.match(timeReg);
-    if (!timeRes) {
-        return false;
-    }
-
-    return `${time}:00`;
-}
-
-function validateDate(date) {
-    if (!date) {
-        return new Date().toISOString().slice(0, 10);
-    }
-
-    const dateReg = /^(\d+)\.(\d+)\.?(\d*)$/
-    let dateRes = date.match(dateReg);
-    if (!dateRes) {
-        return false;
-    }
-
-    return [
-        (dateRes[3] ? dateRes[3] : (new Date()).getFullYear()),
-        dateRes[2],
-        dateRes[1]
-    ].join('-');
-}
-
-function sendCtaFormatMessage(message, description) {
-    const embed = new Discord.MessageEmbed()
-        // Set the title of the field
-        .setTitle('Ошибка регистрации КТА')
-        // Set the color of the embed
-        .setColor(0xff0000)
-        // Set the main content of the embed
-        .setDescription(description)
-        .addField('Формат сообщения', 'Команда - **!cta**\n' +
-            'Название КТА - **Произвольная строка**\n' +
-            'Время, дата (не обяз.) - **чч:мм дд.мм.гггг**')
-        .addField('Пример', '**!cta**\n' +
-            '**КТА, реклайм 31.12**\n' +
-            '**21:00 31.12.2019**')
-        .addField('или', '**!cta**\n' +
-            '**КТА, защита клайма 31.12**\n' +
-            '**21:00**')
-        .addField('или', '**!cta**\n' +
-            '**КТА, защита клайма 31.12**');
-    // Send the embed to the same channel as the message
-    message.author.send(embed);
-}
-
-function notifyAuthor(message, title, description) {
-    const embed = new Discord.MessageEmbed()
-        // Set the title of the field
-        .setTitle(title)
-        // Set the color of the embed
-        .setColor(0xff0000)
-        // Set the main content of the embed
-        .setDescription(description);
-    message.author.send(embed);
-}
-
-function notifyAdmin(message, title, description) {
-    const embed = new Discord.MessageEmbed()
-        // Set the title of the field
-        .setTitle(title)
-        // Set the color of the embed
-        .setColor(0xff0000)
-        // Set the main content of the embed
-        .setDescription(description);
-    config.admins.map(adminId => {
-        message.guild.members.fetch(adminId)
-            .then(guildMember => {
-                console.log(guildMember.user);
-                guildMember.user.send(embed);
-            })
-            .catch(error => console.log(error));
-    });
-}
