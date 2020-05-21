@@ -2,6 +2,10 @@
 	"cmdPrefix": "!ao.",
 	"guildName": "OCEAN",
 	"username": "AlbionOceanBot",
+	"bot":{
+        "name": "AlbionOceanBot",
+        "id": "....."
+    },
 	"admins": [
 		"....."
 	],
@@ -11,5 +15,11 @@
 	},
 	"playingGame": "Albion Online",
 	"botToken": ".....",
-	"apiToken": "..."
+	"apiToken": ".....",
+	"eventTypes": [
+	    "pvp",
+	    "zvz",
+	    "gank",
+	    "pve"
+	]
 }

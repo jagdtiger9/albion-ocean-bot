@@ -1,5 +1,7 @@
 const fs = require('fs');
-const commandInfo = fs.readFileSync('./help.md', 'utf8');
+const commandInfo = fs.readFileSync('./data/help.md', 'utf8');
+const ctaInfo = fs.readFileSync('./data/ctaHelp.md', 'utf8');
+const emoji = require('./data/emoji.json');
 const config = require('./config.json');
 const Discord = require('discord.js');
 const request = require('request');
@@ -30,9 +32,62 @@ function apiRequest(method, apiUrl, query) {
                 console.log(apiResponse);
                 resolve(apiResponse);
             } else {
+                console.log('error: ', error, response);
                 reject(error);
             }
         })
+    });
+}
+
+function ctaRequest(message, action) {
+    return new Promise((resolve, reject) => {
+        console.log('messageId: ' + message.id);
+        let ctaTime;
+
+        let args = message.content.trim().split(/\n/g);
+        // Скидываем первый аргумент, команду !ao.cta
+        args.shift();
+        if (!args[0] || config.eventTypes.includes(args[0])) {
+            reject(`Не верно указан тип активности, ${args[0]}`);
+        }
+        if (!args[1]) {
+            reject('Не указано название КТА активности');
+        }
+
+        if (args[2]) {
+            let ctaTimeArgs = args[2].trim().split(/ +/g);
+            let time = validateTime(ctaTimeArgs[0]);
+            if (!time) {
+                reject(`Неправильно указано время начала активности: ${ctaTimeArgs[0]}`);
+            }
+            let date = validateDate(ctaTimeArgs[1]);
+            if (!date) {
+                reject(`Неправильно указана дата начала активности: ${ctaTimeArgs[1]}`);
+            }
+            console.log(`${date} ${time}`);
+            ctaTime = new Date(`${date} ${time}`);
+            if (isNaN(ctaTime.getTime())) {
+                reject(`Неправильный формат даты: ${date} ${time}`);
+            }
+        }
+        ctaTime = ctaTime ? ctaTime.getTime() / 1000 : 0;
+
+        if (action === 'edit') {
+            console.log(`Api.editEvent(${message.id}, ${args[1]}, ${ctaTime});`);
+        } else {
+            console.log(`Api.registerEvent(${message.author.id}, ${args[1]}, ${ctaTime});`);
+        }
+        resolve(
+            {
+                'messageId': message.id,
+                'userId': message.author.id,
+                'name': args[1],
+                'type': args[0],
+                'time': ctaTime,
+                'isMandatory': 0,
+                'factor': 1
+            }
+        );
     });
 }
 
@@ -71,23 +126,12 @@ function sendCtaFormatMessage(message, description) {
         // Set the color of the embed
         .setColor(0xff0000)
         // Set the main content of the embed
-        .setDescription(description)
-        .addField('Формат сообщения', 'Команда - **!cta**\n' +
-            'Название КТА - **Произвольная строка**\n' +
-            'Время, дата (не обяз.) - **чч:мм дд.мм.гггг**')
-        .addField('Пример', '**!cta**\n' +
-            '**КТА, реклайм 31.12**\n' +
-            '**21:00 31.12.2019**')
-        .addField('или', '**!cta**\n' +
-            '**КТА, защита клайма 31.12**\n' +
-            '**21:00**')
-        .addField('или', '**!cta**\n' +
-            '**КТА, защита клайма 31.12**');
+        .setDescription(`${description}\n\n${ctaInfo}`);
     // Send the embed to the same channel as the message
     message.author.send(embed);
 }
 
-function notifyAuthor(message, title, description) {
+function notifyAuthor(author, title, description) {
     const embed = new Discord.MessageEmbed()
         // Set the title of the field
         .setTitle(title)
@@ -95,22 +139,22 @@ function notifyAuthor(message, title, description) {
         .setColor(0xff0000)
         // Set the main content of the embed
         .setDescription(description);
-    message.author.send(embed);
+    author.send(embed);
 }
 
-function notifyAdmin(message, title, description, moderateAuthLink) {
+function notifyAdmin(guild, title, description, moderateAuthLink) {
     const embed = new Discord.MessageEmbed()
         // Set the title of the field
         .setTitle(title)
         // Set the color of the embed
         .setColor(0xff0000);
     config.admins.map(adminId => {
-        message.guild.members.fetch(adminId)
+        guild.members.fetch(adminId)
             .then(guildMember => {
                 let hashLoginData = '';
                 if (moderateAuthLink) {
                     hashLoginData = `\n---\n[Вход без пароля](${baseApiUrl}${moderateAuthLink}/${guildMember.user.id})\n` +
-                        `Ссылка актуальна в течение 10 минут`
+                        `Ссылка актуальна в течение часа`
                 }
                 embed.setDescription(description + hashLoginData);
 
@@ -118,6 +162,31 @@ function notifyAdmin(message, title, description, moderateAuthLink) {
             })
             .catch(error => console.log(error));
     });
+}
+
+function getRoleByReaction(reaction) {
+    switch (reaction.emoji.name) {
+        case emoji.rl:
+            return 'rl';
+        case emoji.tank:
+            return 'tank';
+        case emoji.heal:
+            return 'heal';
+        case emoji.dd:
+            return 'dd';
+        case emoji.support:
+            return 'support';
+    }
+
+    return '';
+}
+
+function notifyError(user, guild, error) {
+    console.log('Error: ', error);
+    let title = 'Ошибка регистрации на  активность';
+    let info = 'Ветеранская диверсия, сервис недоступен';
+    notifyAuthor(user, title, info);
+    notifyAdmin(guild, title, error);
 }
 
 /**
@@ -153,27 +222,22 @@ let register = function register(message, args = []) {
     apiRequest('post', '/api/albion/discordRegister', params).then(
         apiResponse => {
             if (apiResponse.status) {
-                console.log(apiResponse);
                 notifyAuthor(
-                    message,
+                    message.author,
                     'Поздравляем!',
                     `${apiResponse.result.message}\nЗаявка будет рассмотрена в течение 10 минут`);
-                notifyAdmin(message,
+                notifyAdmin(message.guild,
                     'Новая регистрация в ocean-albion.ru',
                     `[Подтвердить регистрацию](${baseApiUrl}${apiResponse.result.moderateLink})\n${adminMessage}`,
                     apiResponse.result.moderateAuthLink
                 );
             } else {
-                notifyAuthor(message, 'Ошибка регистрации', apiResponse.result);
-                notifyAdmin(message, 'Ошибка регистрации', `${apiResponse.result}\n${adminMessage}`);
+                notifyAuthor(message.author, 'Ошибка регистрации', apiResponse.result);
+                notifyAdmin(message.guild, 'Ошибка регистрации', `${apiResponse.result}\n${adminMessage}`);
             }
         },
         error => {
-            console.log('Error: ', error);
-            let title = 'Ошибка регистрации';
-            let info = 'Ветеранская диверсия, сервис недоступен';
-            notifyAuthor(message, title, info);
-            notifyAdmin(message, title, error);
+            notifyError(message.author, message.guild, error);
         }
     );
 }
@@ -193,22 +257,18 @@ let password = function password(message, args = []) {
         apiResponse => {
             if (apiResponse.status) {
                 notifyAuthor(
-                    message,
+                    message.author,
                     'Доступ получен',
                     `[ocean-albion.ru](https://ocean-albion.ru)\nЛогин: ${args[0]}\nПароль: ${apiResponse.result.password}`
                 );
-                notifyAdmin(message, 'Сброс пароля', adminMessage);
+                notifyAdmin(message.guild, 'Сброс пароля', adminMessage);
             } else {
-                notifyAuthor(message, 'Ошибка получения доступа', apiResponse.result);
-                notifyAdmin(message, 'Ошибка получения пароля', `${apiResponse.result}\n${adminMessage}`);
+                notifyAuthor(message.author, 'Ошибка получения доступа', apiResponse.result);
+                notifyAdmin(message.guild, 'Ошибка получения пароля', `${apiResponse.result}\n${adminMessage}`);
             }
         },
         error => {
-            console.log('Error: ', error);
-            let title = 'Ошибка получения пароля';
-            let info = 'Ветеранская диверсия, сервис недоступен';
-            notifyAuthor(message, title, info);
-            notifyAdmin(message, title, error);
+            notifyError(message.author, message.guild, error);
         }
     );
 }
@@ -221,72 +281,162 @@ module.exports.password = password;
  * @param args
  */
 let updateDb = function updateDb(message, args = []) {
-    notifyAuthor(message, 'Команда updateDb', 'Доступна только администраторам');
+    notifyAuthor(message.author, 'Команда updateDb', 'Доступна только администраторам');
 }
 module.exports.updateDb = updateDb;
-
-/**
- * Auth discord user at ocean-albion.ru
- * @param message
- * @param args
- */
-let auth = function auth(message, args = []) {
-    notifyAuthor(message, 'Команда auth', 'Возможно, она будет делать что-нибудь полезное');
-    /*
-    console.log(message.channel.guild.members);
-    console.log(message.channel.guild.roles.find());
-    console.log(message.channel.guild.roles);
-    console.log(message.member);
-    console.log(args);
-    */
-}
-module.exports.auth = auth;
 
 /**
  * Register guild CTA activity
  * @param message
  * @param args
  */
-let cta = function cta(message, args = []) {
-    console.log('author: ' + message.author.id + ' ' + message.author.username);
-    console.log('messageId: ' + message.id);
-    let ctaTime;
+let cta = function cta(message, action = 'add') {
+    ctaRequest(message, action)
+        .then(
+            (params) => {
+                let adminMessage = `Пользователь ${message.author.username}`;
+                apiRequest('post', '/api/albion/discordEditEvent', params).then(
+                    apiResponse => {
+                        if (apiResponse.status) {
+                            notifyAuthor(message.author, 'Поздравляем!', `${apiResponse.result}`);
+                            notifyAdmin(message.guild, 'Новая активность', `${adminMessage}\n${apiResponse.result}`);
 
-    if (!args[0]) {
-        sendCtaFormatMessage(message);
-        return;
-    }
-    if (!args[0]) {
-        sendCtaFormatMessage(message, 'Не указано название КТА активности');
-        return;
-    }
-    if (args[1]) {
-        let ctaTimeArgs = args[1].trim().split(/ +/g);
-        let time = validateTime(ctaTimeArgs[0]);
-        if (!time) {
-            sendCtaFormatMessage(message, `Неправильно указано время начала активности: ${ctaTimeArgs[0]}`);
-            return;
-        }
-        let date = validateDate(ctaTimeArgs[1]);
-        if (!date) {
-            sendCtaFormatMessage(message, `Неправильно указана дата начала активности: ${ctaTimeArgs[1]}`);
-            return;
-        }
+                            // Временно без РЛ
+                            ///message.react(emoji.rl);
+                            message.react(emoji.tank);
+                            message.react(emoji.heal);
+                            message.react(emoji.dd);
+                            message.react(emoji.support);
+                        } else {
+                            notifyAuthor(message.author, 'Ошибка регистрации активности', apiResponse.result);
+                            notifyAdmin(message.guild, 'Ошибка регистрации активности', `${adminMessage}\n${apiResponse.result}`);
+                        }
+                    },
+                    error => {
+                        notifyError(message.author, message.guild, error);
+                    }
+                );
+            },
+            (text) => {
+                sendCtaFormatMessage(message, text);
+            });
 
-        console.log(`${date} ${time}`);
-        ctaTime = new Date(`${date} ${time}`);
-        if (isNaN(ctaTime.getTime())) {
-            sendCtaFormatMessage(message, `Неправильный формат даты: ${date} ${time}`);
-            return;
-        }
-    }
-
-    console.log(`Api.registerEvent(${message.author.username}, ${args[0]}, ${ctaTime.getTime()});`);
-    // Api.registerEvent(message.author.username, args[0], ctaTime.getTime());
-    message.react('🆗');
 }
 module.exports.cta = cta;
 
+/**
+ * Delete guild CTA activity
+ * @param message
+ * @param args
+ */
+let deleteCta = function deleteCta(message) {
+    console.log('messageId: ' + message.id);
+    console.log(`Api.deleteEvent(${message.id}, ${message.author.id});`);
+
+    let params = {
+        'messageId': message.id,
+        'userId': message.author.id,
+    };
+    apiRequest('post', '/api/albion/discordDeleteEvent', params).then(
+        apiResponse => {
+            if (apiResponse.status) {
+                notifyAuthor(
+                    message.author,
+                    'Поздравляем!',
+                    `${apiResponse.result}`);
+                notifyAdmin(
+                    message.guild,
+                    'Удаление сообщения КТА активности',
+                    `${message.author.username}\n${apiResponse.result}`,
+                );
+            } else {
+                notifyAuthor(message.author, 'Ошибка удаления КТА активности', apiResponse.result);
+                notifyAdmin(
+                    message.guild,
+                    'Ошибка удаления КТА активности',
+                    `${message.author.username}\n${apiResponse.result}`
+                );
+            }
+        },
+        error => {
+            notifyError(message.author, message.guild, error);
+        }
+    );
+}
+module.exports.deleteCta = deleteCta;
+
+/**
+ * Добавления пользователя к активности
+ * @param reaction
+ * @param user
+ */
+let joinMember = function joinMember(reaction, user) {
+    let role = getRoleByReaction(reaction);
+    let params = {
+        'messageId': reaction.message.id,
+        'userId': user.id,
+        'role': role,
+    };
+    console.log(`Api.discordJoinEvent(${reaction.message.id}, ${user.id}, ${role});`);
+    apiRequest('get', '/api/albion/discordJoinEvent', params).then(
+        apiResponse => {
+            if (apiResponse.status) {
+                notifyAuthor(user, 'Поздравляем!', `${apiResponse.result}`);
+            } else {
+                reaction.users.remove(user.id);
+                notifyAuthor(user, 'Ошибка регистрации на активность', apiResponse.result);
+                notifyAdmin(
+                    reaction.message.channel.guild,
+                    'Ошибка регистрации на активность',
+                    `Пользователь ${user.username}\n${apiResponse.result}`
+                );
+            }
+        },
+        error => {
+            reaction.users.remove(user.id);
+            notifyError(user, reaction.guild, error);
+        }
+    );
+}
+module.exports.joinMember = joinMember;
+
+/**
+ * Исключение пользователя из списка участников активности
+ * @param reaction
+ * @param user
+ */
+let leaveMember = function leaveMember(reaction, user) {
+    let role = getRoleByReaction(reaction);
+    let params = {
+        'messageId': reaction.message.id,
+        'userId': user.id,
+        'role': role,
+    };
+    console.log(`Api.discordLeaveEvent(${reaction.message.id}, ${user.id}, ${role});`);
+    apiRequest('get', '/api/albion/discordLeaveEvent', params).then(
+        apiResponse => {
+            if (apiResponse.status) {
+                notifyAuthor(user, 'Поздравляем!', `${apiResponse.result}`);
+            } else {
+                //notifyAuthor(user, 'Ошибка выхода из списка участников активности', apiResponse.result);
+                notifyAdmin(
+                    reaction.message.channel.guild,
+                    'Ошибка выхода из списка участников активности',
+                    `Пользователь ${user.username}\n${apiResponse.result}`
+                );
+            }
+        },
+        error => {
+            notifyError(user, reaction.guild, error);
+        }
+    );
+}
+module.exports.leaveMember = leaveMember;
+
+/**
+ * Очистка канала дискорда от сообщений
+ * @param message
+ */
 let clear = function clear(message) {
     if (config.admins.includes(message.author.id) && message.channel.id === config.botChannel.main) {
         message.channel.send('Clearing Killboard').then(msg => {
