@@ -57,10 +57,7 @@ client.on('message', message => {
             oceanlib.updateDb(message, args);
             break;
         case 'cta':
-            oceanlib.cta(message);
-            break;
-        case 'clear':
-            //oceanlib.clear(message);
+            oceanlib.cta(message, args);
             break;
     }
 });
@@ -77,7 +74,7 @@ client.on('messageUpdate', (oldMessage, newMessage) => {
     let command = args.shift().toLowerCase();
     switch (command) {
         case 'cta':
-            oceanlib.cta(newMessage);
+            oceanlib.cta(newMessage, args);
             break;
     }
 })
@@ -138,7 +135,9 @@ function getArgs(message) {
     }
 
     // Параметры команды
-    return message.content.slice(config.cmdPrefix.length).trim().split(/\n|\s/g);
+    let commandLine = message.content.slice(config.cmdPrefix.length).trim().split(/\n/g).shift();
+
+    return commandLine.split(/\s/g);
 }
 
 async function validateReaction(reaction) {

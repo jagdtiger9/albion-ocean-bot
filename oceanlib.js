@@ -39,23 +39,23 @@ function apiRequest(method, apiUrl, query) {
     });
 }
 
-function ctaRequest(message, action) {
+function ctaRequest(message, args) {
     return new Promise((resolve, reject) => {
-        console.log('messageId: ' + message.id);
         let ctaTime;
 
-        let args = message.content.trim().split(/\n/g);
-        // Скидываем первый аргумент, команду !ao.cta
-        args.shift();
         if (!args[0] || !config.eventTypes.includes(args[0])) {
             reject(`Не верно указан тип активности, ${args[0]}`);
         }
-        if (!args[1]) {
+
+        let params = message.content.trim().split(/\n/g);
+        // Скидываем первый аргумент, команду !ao.cta
+        params.shift();
+        if (!params[0]) {
             reject('Не указано название КТА активности');
         }
 
-        if (args[2]) {
-            let ctaTimeArgs = args[2].trim().split(/ +/g);
+        if (params[1] && params[1].match('/\d+:\d+\s[\d\.]+/')) {
+            let ctaTimeArgs = params[1].trim().split(/ +/g);
             let time = validateTime(ctaTimeArgs[0]);
             if (!time) {
                 reject(`Неправильно указано время начала активности: ${ctaTimeArgs[0]}`);
@@ -71,17 +71,11 @@ function ctaRequest(message, action) {
             }
         }
         ctaTime = ctaTime ? ctaTime.getTime() / 1000 : 0;
-
-        if (action === 'edit') {
-            console.log(`Api.editEvent(${message.id}, ${args[1]}, ${ctaTime});`);
-        } else {
-            console.log(`Api.registerEvent(${message.author.id}, ${args[1]}, ${ctaTime});`);
-        }
         resolve(
             {
                 'messageId': message.id,
                 'userId': message.author.id,
-                'name': args[1],
+                'name': params[0],
                 'type': args[0],
                 'time': ctaTime,
                 'isMandatory': 0,
@@ -290,8 +284,8 @@ module.exports.updateDb = updateDb;
  * @param message
  * @param args
  */
-let cta = function cta(message, action = 'add') {
-    ctaRequest(message, action)
+let cta = function cta(message, args) {
+    ctaRequest(message, args)
         .then(
             (params) => {
                 let adminMessage = `Пользователь ${message.author.username}`;
@@ -437,19 +431,3 @@ let leaveMember = function leaveMember(reaction, user) {
     );
 }
 module.exports.leaveMember = leaveMember;
-
-/**
- * Очистка канала дискорда от сообщений
- * @param message
- */
-let clear = function clear(message) {
-    if (config.admins.includes(message.author.id) && message.channel.id === config.botChannel.main) {
-        message.channel.send('Clearing Killboard').then(msg => {
-            msg.channel.messages.fetch().then(messages => {
-                message.channel.bulkDelete(messages);
-                console.log("[ADMIN] " + message.author.username + " cleared Killboard");
-            })
-        })
-    }
-}
-module.exports.clear = clear;
