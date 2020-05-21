@@ -47,7 +47,7 @@ function ctaRequest(message, action) {
         let args = message.content.trim().split(/\n/g);
         // Скидываем первый аргумент, команду !ao.cta
         args.shift();
-        if (!args[0] || config.eventTypes.includes(args[0])) {
+        if (!args[0] || !config.eventTypes.includes(args[0])) {
             reject(`Не верно указан тип активности, ${args[0]}`);
         }
         if (!args[1]) {
@@ -382,6 +382,11 @@ let joinMember = function joinMember(reaction, user) {
         apiResponse => {
             if (apiResponse.status) {
                 notifyAuthor(user, 'Поздравляем!', `${apiResponse.result}`);
+                notifyAdmin(
+                    reaction.message.channel.guild,
+                    'Регистрация на активность',
+                    `Пользователь ${user.username}\n${apiResponse.result}`
+                );
             } else {
                 reaction.users.remove(user.id);
                 notifyAuthor(user, 'Ошибка регистрации на активность', apiResponse.result);
