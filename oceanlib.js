@@ -43,9 +43,15 @@ function ctaRequest(message, args) {
     return new Promise((resolve, reject) => {
         let ctaTime;
 
-        if (!args[0] || !config.eventTypes.includes(args[0])) {
+        if (!args[0]) {
+            reject(`Не указан тип активности, ${config.eventTypes.join(', ')}`);
+        }
+
+        let type = args[0].match(/(\+?)([a-z]+)(\+?)/);
+        if (!config.eventTypes.includes(type[2])) {
             reject(`Не верно указан тип активности, ${args[0]}`);
         }
+        let isMandatory = type[1] || type[3] ? 1 : 0;
 
         let params = message.content.trim().split(/\n/g);
         // Скидываем первый аргумент, команду !ao.cta
@@ -78,7 +84,7 @@ function ctaRequest(message, args) {
                 'name': params[0],
                 'type': args[0],
                 'time': ctaTime,
-                'isMandatory': 0,
+                'isMandatory': isMandatory,
                 'factor': 1
             }
         );
