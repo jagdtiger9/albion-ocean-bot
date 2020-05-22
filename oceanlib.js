@@ -207,7 +207,7 @@ module.exports.help = help;
  * @param args
  */
 let register = function register(message, args = []) {
-    let adminMessage = `Пользователь ${message.author.username}, регистрационный ник ${args[0]}`;
+    let adminMessage = `Игрок ${message.author.username}, регистрационный ник ${args[0]}`;
     let params = {
         'discordId': message.author.id,
         'discordName': message.author.username,
@@ -242,7 +242,7 @@ module.exports.register = register;
  * @param message
  */
 let password = function password(message, args = []) {
-    let adminMessage = `Пользователь ${message.author.username}, ник ${args[0]}`;
+    let adminMessage = `Игрок ${message.author.username}, ник ${args[0]}`;
     let params = {
         'id': message.author.id,
         'albionName': args[0]
@@ -288,7 +288,7 @@ let cta = function cta(message, args) {
     ctaRequest(message, args)
         .then(
             (params) => {
-                let adminMessage = `Пользователь ${message.author.username}`;
+                let adminMessage = `Игрок ${message.author.username}`;
                 apiRequest('post', '/api/albion/discordEditEvent', params).then(
                     apiResponse => {
                         if (apiResponse.status) {
@@ -360,7 +360,7 @@ let deleteCta = function deleteCta(message) {
 module.exports.deleteCta = deleteCta;
 
 /**
- * Добавления пользователя к активности
+ * Добавления игрока к активности
  * @param reaction
  * @param user
  */
@@ -379,7 +379,7 @@ let joinMember = function joinMember(reaction, user) {
                 notifyAdmin(
                     reaction.message.channel.guild,
                     'Регистрация на активность',
-                    `Пользователь ${user.username}\n${apiResponse.result}`
+                    `Игрок ${user.username}\n${apiResponse.result}`
                 );
             } else {
                 reaction.users.remove(user.id);
@@ -387,7 +387,7 @@ let joinMember = function joinMember(reaction, user) {
                 notifyAdmin(
                     reaction.message.channel.guild,
                     'Ошибка регистрации на активность',
-                    `Пользователь ${user.username}\n${apiResponse.result}`
+                    `Игрок ${user.username}\n${apiResponse.result}`
                 );
             }
         },
@@ -400,7 +400,7 @@ let joinMember = function joinMember(reaction, user) {
 module.exports.joinMember = joinMember;
 
 /**
- * Исключение пользователя из списка участников активности
+ * Исключение игрока из списка участников активности
  * @param reaction
  * @param user
  */
@@ -421,7 +421,7 @@ let leaveMember = function leaveMember(reaction, user) {
                 notifyAdmin(
                     reaction.message.channel.guild,
                     'Ошибка выхода из списка участников активности',
-                    `Пользователь ${user.username}\n${apiResponse.result}`
+                    `Игрок ${user.username}\n${apiResponse.result}`
                 );
             }
         },
