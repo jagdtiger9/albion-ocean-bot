@@ -15,9 +15,16 @@
  * https://github.com/AnIdiotsGuide/discordjs-bot-guide/blob/master/understanding/roles.md
  */
 
+const OceanBot = require('./oceanlib.js');
 const config = require('./config.json');
-const oceanlib = require('./oceanlib.js');
+const emoji = require('./data/emoji.json');
+const request = require('request');
 const Discord = require('discord.js');
+const fs = require('fs');
+const commandInfo = fs.readFileSync('./data/help.md', 'utf8');
+const ctaInfo = fs.readFileSync('./data/ctaHelp.md', 'utf8');
+
+const Ocean = new OceanBot(config, emoji, Discord, request);
 const client = new Discord.Client({partials: ['MESSAGE', 'REACTION']});
 
 let args;
@@ -45,19 +52,19 @@ client.on('message', message => {
     let command = args.shift().toLowerCase();
     switch (command) {
         case 'help':
-            oceanlib.help(message);
+            Ocean.help(message, commandInfo);
             break;
         case 'register':
-            oceanlib.register(message, args);
+            Ocean.register(message, args);
             break;
         case 'password':
-            oceanlib.password(message, args);
+            Ocean.password(message, args);
             break;
         case 'updateDb':
-            oceanlib.updateDb(message, args);
+            Ocean.updateDb(message, args);
             break;
         case 'cta':
-            oceanlib.cta(message, args);
+            Ocean.cta(message, args, ctaInfo);
             break;
     }
 });
@@ -74,7 +81,7 @@ client.on('messageUpdate', (oldMessage, newMessage) => {
     let command = args.shift().toLowerCase();
     switch (command) {
         case 'cta':
-            oceanlib.cta(newMessage, args);
+            Ocean.cta(newMessage, args, ctaInfo);
             break;
     }
 })
@@ -93,7 +100,7 @@ client.on('messageDelete', (message) => {
     }
     let command = args.shift().toLowerCase();
     if (command === 'cta') {
-        oceanlib.deleteCta(message);
+        Ocean.deleteCta(message);
     }
 })
 
@@ -104,7 +111,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
             if (config.bot.id === user.id) {
                 return null;
             }
-            oceanlib.joinMember(reaction, user);
+            Ocean.joinMember(reaction, user);
         },
         error => {
             console.log('AddReaction error', error);
@@ -116,7 +123,7 @@ client.on('messageReactionRemove', async (reaction, user) => {
     validateReaction(reaction).then(
         reaction => {
             // reaction.me не проверяем, при отмене реакции, me - оставшийся голос
-            oceanlib.leaveMember(reaction, user);
+            Ocean.leaveMember(reaction, user);
         },
         error => {
             console.log('RemoveReaction error', error);
