@@ -7,7 +7,7 @@
 * Регистрация на гильдейские-альянсовые активности
 * Предоставление доступа игрокам для просмотра статистики на https://ocean-albion.ru 
 
-В планах:
+**В планах:**
 * Синхронизация ролей
 * Еще что-нибудь...
 
@@ -20,4 +20,4 @@
 * [Discord Application](https://discordapp.com/developers/applications/)
 * config.json.example => config.json
 * Режим разработчика в Дискорде (Settings -> Appearance)
-* Добавить бота на сервер: [https://discordapp.com/oauth2/authorize?client_id={YOUR CLIENT ID}](https://discordapp.com/oauth2/authorize?client_id=#)
+* Добавить бота на сервер: [https://discordapp.com/oauth2/authorize?client_id={CLIENT ID}](https://discordapp.com/oauth2/authorize?client_id=#)
