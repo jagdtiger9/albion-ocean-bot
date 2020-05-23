@@ -31,8 +31,8 @@ client.on('ready', () => {
     console.log('Connected as ' + client.user.tag);
     console.log('Client name ' + client.user.username);
     // If the config.username differs, change it
-    if (client.user.username != config.username) {
-        client.user.setUsername(config.username);
+    if (client.user.username != config.bot.name) {
+        client.user.setUsername(config.bot.name);
     }
     client.user.setActivity(config.playingGame);
 });

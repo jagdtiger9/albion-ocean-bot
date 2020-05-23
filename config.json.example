@@ -1,7 +1,6 @@
 {
 	"cmdPrefix": "!ao.",
 	"guildName": "OCEAN",
-	"username": "AlbionOceanBot",
 	"bot":{
         "name": "AlbionOceanBot",
         "id": "....."

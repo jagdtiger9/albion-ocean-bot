@@ -1,38 +1,23 @@
-# Albion Ocean bot
+## Albion Ocean bot
 
-A discord bot for Albion
+Дискорд бот гильдии Ocean, Albion online
 
-### Usage
+### Функции:
+* Привязка учетки дискорда к игровому нику
+* Регистрация на гильдейские-альянсовые активности
+* Предоставление доступа игрокам для просмотра статистики на https://ocean-albion.ru 
 
-* !register UserName
+В планах:
+* Синхронизация ролей
+* Еще что-нибудь...
+
+### Использование
+* !ao.help
  
-### Installation
-
-* Install [NodeJS](https://nodejs.org/)
-* Execute 'npm install' in the directory to download the dependencies
-* Create a new [Discord Application](https://discordapp.com/developers/applications/)
-* Copy config.json.example --> config.json
-* Enable developer mode in Discord (Settings -> Appearance)
-* **To add the bot to your server**: Visit [https://discordapp.com/oauth2/authorize?client_id={YOUR CLIENT ID}](https://discordapp.com/oauth2/authorize?client_id=#)
-Example: [https://discordapp.com/api/oauth2/authorize?client_id=347919794504335362&permissions=2048&scope=bot](https://discordapp.com/oauth2/authorize?client_id=#)
-
-##### Example: config.json
-
---
-
-```json
-{
-    "cmdPrefix": "!",
-    "guildName": "OCEAN",
-    "username": "Albion bot",
-    "admins": [
-        "....."
-    ],
-    "botChannel": ".....",
-    "playingGame": "Albion bot",
-    "token": "....."
-}
-```
-
-* [Discord.js](https://github.com/hydrabolt/discord.js/) - Discord app library for Node.js and browsers.
-* [Request](https://github.com/request/request) - Simplified HTTP client
+### Установка
+* [NodeJS](https://nodejs.org/)
+* $ npm install
+* [Discord Application](https://discordapp.com/developers/applications/)
+* config.json.example => config.json
+* Режим разработчика в Дискорде (Settings -> Appearance)
+* Добавить бота на сервер: [https://discordapp.com/oauth2/authorize?client_id={YOUR CLIENT ID}](https://discordapp.com/oauth2/authorize?client_id=#)
