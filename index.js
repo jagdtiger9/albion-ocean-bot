@@ -23,8 +23,9 @@ const Discord = require('discord.js');
 const fs = require('fs');
 const commandInfo = fs.readFileSync('./data/help.md', 'utf8');
 const ctaInfo = fs.readFileSync('./data/ctaHelp.md', 'utf8');
+const ctaDescription = fs.readFileSync('./data/ctaDescription.md', 'utf8');
 
-const Ocean = new OceanBot(config, emoji, Discord, request);
+const Ocean = new OceanBot(config, emoji, ctaDescription, Discord, request);
 const client = new Discord.Client({partials: ['MESSAGE', 'REACTION']});
 
 let args;

@@ -1,10 +1,14 @@
 module.exports = class OceanBot {
-    constructor(config, emoji, discord, request) {
+    constructor(config, emoji, ctaDescription, discord, request) {
         this.config = config;
         this.emoji = emoji;
         this.discord = discord;
         this.request = request;
         this.baseApiUrl = 'https://ocean-albion.ru';
+
+        this.ctaDescription = Object.entries(this.emoji).reduce((description, [key, value]) => {
+            return description.replace(`{${key}}`, value);
+        }, ctaDescription);
     }
 
     apiRequest(method, apiUrl, query) {
@@ -302,6 +306,10 @@ module.exports = class OceanBot {
                                 message.react(this.emoji.heal);
                                 message.react(this.emoji.dd);
                                 message.react(this.emoji.support);
+
+                                message.reply(this.ctaDescription)
+                                    .then(() => console.log(`Sent a reply to ${message.author.username}`))
+                                    .catch(console.error);
                             } else {
                                 this.notifyAuthor(message.author, 'Ошибка регистрации активности', apiResponse.result);
                                 this.notifyAdmin(message.guild, 'Ошибка регистрации активности', `${adminMessage}\n${apiResponse.result}`);

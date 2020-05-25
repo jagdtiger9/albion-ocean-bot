@@ -13,6 +13,9 @@
 
 ### Использование
 * !ao.help
+* !ao.register
+* !ao.password
+* !ao.cta
  
 ### Установка
 * [NodeJS](https://nodejs.org/)
