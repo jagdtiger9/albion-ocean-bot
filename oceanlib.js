@@ -390,7 +390,11 @@ module.exports = class OceanBot {
                     );
                 } else {
                     reaction.users.remove(user.id);
-                    this.notifyAuthor(user, 'Ошибка регистрации на активность', apiResponse.result);
+                    this.notifyAuthor(
+                        user,
+                        'Ошибка регистрации на активность' + (apiResponse.errorCode === 11 ? '\n!ao.register ИгровойНик' : ''),
+                        apiResponse.result
+                    );
                     this.notifyAdmin(
                         reaction.message.channel.guild,
                         'Ошибка регистрации на активность',
