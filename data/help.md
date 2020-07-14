@@ -16,7 +16,7 @@
 ```
 
 > **!ao.password**
-Получение пароля для доступа к [ocean-albion.ru](https://ocean-albion.ru) 
+Получение пароля для доступа к [albion.gudilap.ru](https://albion.gudilap.ru) 
 ```diff
 // Получение пароля для указанного игрового ника
 // Ник должен быть зарегистрирован, !ao.register nickname

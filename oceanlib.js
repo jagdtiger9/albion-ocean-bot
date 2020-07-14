@@ -4,7 +4,7 @@ module.exports = class OceanBot {
         this.emoji = emoji;
         this.discord = discord;
         this.request = request;
-        this.baseApiUrl = 'https://ocean-albion.ru';
+        this.baseApiUrl = 'https://albion.gudilap.ru';
 
         this.ctaDescription = Object.entries(this.emoji).reduce((description, [key, value]) => {
             return description.replace(`{${key}}`, value);
@@ -210,7 +210,7 @@ module.exports = class OceanBot {
     }
 
     /**
-     * Register discord user at ocean-albion.ru
+     * Register discord user at albion.gudilap.ru
      * @param message
      * @param args
      */
@@ -229,7 +229,7 @@ module.exports = class OceanBot {
                         'Поздравляем!',
                         `${apiResponse.result.message}\nЗаявка будет рассмотрена в течение 10 минут`);
                     this.notifyAdmin(message.guild,
-                        'Новая регистрация в ocean-albion.ru',
+                        'Новая регистрация в albion.gudilap.ru',
                         `[Подтвердить регистрацию](${this.baseApiUrl}${apiResponse.result.moderateLink})\n${adminMessage}`,
                         apiResponse.result.moderateAuthLink
                     );
@@ -245,7 +245,7 @@ module.exports = class OceanBot {
     }
 
     /**
-     * Get new password for ocean-albion.ru
+     * Get new password for albion.gudilap.ru
      * @param message
      */
     password(message, args = []) {
@@ -260,7 +260,7 @@ module.exports = class OceanBot {
                     this.notifyAuthor(
                         message.author,
                         'Доступ получен',
-                        `[ocean-albion.ru](https://ocean-albion.ru)\nЛогин: ${args[0]}\nПароль: ${apiResponse.result.password}`
+                        `[albion.gudilap.ru](https://albion.gudilap.ru)\nЛогин: ${args[0]}\nПароль: ${apiResponse.result.password}`
                     );
                     this.notifyAdmin(message.guild, 'Сброс пароля', adminMessage);
                 } else {
@@ -275,7 +275,7 @@ module.exports = class OceanBot {
     }
 
     /**
-     * Update discord nicknames at ocean-albion.ru
+     * Update discord nicknames at albion.gudilap.ru
      * @param message
      * @param args
      */
