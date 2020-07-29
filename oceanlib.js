@@ -263,7 +263,7 @@ module.exports = class OceanBot {
                         `[albion.gudilap.ru](https://albion.gudilap.ru)\n` +
                         `Логин: ${args[0]}\nПароль: ${apiResponse.result.password}\n\n` +
                         `[Доступ без пароля](${apiResponse.result.instantLoginUrl})\n` +
-                        `*Ссылка действительна 5минут`
+                        `*Ссылка действительна 5 минут*`
                     );
                     this.notifyAdmin(message.guild, 'Сброс пароля', adminMessage);
                 } else {
