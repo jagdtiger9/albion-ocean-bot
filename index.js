@@ -59,6 +59,9 @@ client.on('message', message => {
             Ocean.register(message, args);
             break;
         case 'password':
+            Ocean.password(message, args, 1);
+            break;
+        case 'access':
             Ocean.password(message, args);
             break;
         case 'updateDb':
