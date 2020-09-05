@@ -252,7 +252,6 @@ module.exports = class OceanBot {
      * @param withPass
      */
     password(message, args = [], withPass = 0) {
-        let adminMessage = `Пользователь ${message.author.username}, ник ${args[0]}`;
         let params = {
             'id': message.author.id,
             'albionName': args[0]
@@ -264,15 +263,23 @@ module.exports = class OceanBot {
                         message.author,
                         'Доступ получен',
                         `[albion.gudilap.ru](https://albion.gudilap.ru)\n` +
-                        `Логин: ${args[0]}\n` +
+                        `Логин: ${apiResponse.result.login}\n` +
                         (withPass ? `Пароль: ${apiResponse.result.password}\n\n` : `\n`) +
                         `[Доступ без пароля](${apiResponse.result.instantLoginUrl})\n` +
                         `*Ссылка действительна 5 минут*`
                     );
-                    this.notifyAdmin(message.guild, 'Доступ предоставлен', adminMessage);
+                    this.notifyAdmin(
+                        message.guild,
+                        'Доступ предоставлен',
+                        `Пользователь ${message.author.username}, ник ${apiResponse.result.login}`
+                    );
                 } else {
                     this.notifyAuthor(message.author, 'Ошибка получения доступа', apiResponse.result);
-                    this.notifyAdmin(message.guild, 'Ошибка предоставления доступа', `${apiResponse.result}\n${adminMessage}`);
+                    this.notifyAdmin(
+                        message.guild,
+                        'Ошибка предоставления доступа',
+                        `${apiResponse.result}\nПользователь ${message.author.username}`
+                    );
                 }
             },
             error => {

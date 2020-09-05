@@ -62,7 +62,7 @@ client.on('message', message => {
             Ocean.password(message, args, 1);
             break;
         case 'access':
-            Ocean.password(message, args);
+            Ocean.password(message, args, 1);
             break;
         case 'updateDb':
             Ocean.updateDb(message, args);
