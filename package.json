@@ -1,18 +1,18 @@
 {
-  "name": "albion-ocean-bot",
-  "version": "1.0.0",
-  "description": "Albion Ocean discord bot",
-  "main": "index.js",
-  "author": "Aljerom",
-  "repository": {
-    "type": "git",
-    "url": "https://jagdtiger9@github.com/jagdtiger9/albion-ocean-bot.git"
-  },
-  "scripts": {
-    "start": "node index.js"
-  },
-  "dependencies": {
-    "discord.js": "^12.1.1",
-    "request": "^2.88.0"
-  }
+    "name": "albion-ocean-bot",
+    "version": "1.0.0",
+    "description": "Albion Ocean discord bot",
+    "main": "index.js",
+    "author": "Aljerom",
+    "repository": {
+        "type": "git",
+        "url": "https://jagdtiger9@github.com/jagdtiger9/albion-ocean-bot.git"
+    },
+    "scripts": {
+        "start": "node index.js"
+    },
+    "dependencies": {
+        "discord.js": "^12.5.3",
+        "request": "^2.88.0"
+    }
 }

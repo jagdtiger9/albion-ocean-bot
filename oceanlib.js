@@ -403,17 +403,19 @@ module.exports = class OceanBot {
                         `Пользователь ${user.username}\n${apiResponse.result}`
                     );
                 } else {
-                    reaction.users.remove(user.id);
-                    this.notifyAuthor(
-                        user,
-                        'Ошибка регистрации на активность' + (apiResponse.errorCode === 11 ? '\n!ao.register ИгровойНик' : ''),
-                        apiResponse.result
-                    );
-                    this.notifyAdmin(
-                        reaction.message.channel.guild,
-                        'Ошибка регистрации на активность',
-                        `Пользователь ${user.username}\n${apiResponse.result}`
-                    );
+                    if (apiResponse.error.code) {
+                        reaction.users.remove(user.id);
+                        this.notifyAuthor(
+                            user,
+                            'Ошибка регистрации на активность' + (apiResponse.errorCode === 11 ? '\n!ao.register ИгровойНик' : ''),
+                            apiResponse.result
+                        );
+                        this.notifyAdmin(
+                            reaction.message.channel.guild,
+                            'Ошибка регистрации на активность',
+                            `Пользователь ${user.username}\n${apiResponse.result}`
+                        );
+                    }
                 }
             },
             error => {
