@@ -380,24 +380,40 @@ module.exports = class OceanBot {
         );
     }
 
-    addFriend(reaction, user, add = false) {
+    async addFriend(reaction, user, add = false) {
         if (!this.config.admins.includes(user.id)) {
             console.log('Недостаточно прав');
         }
 
+        // Partial message handling
         let botReaction = reaction.users.cache.filter((user, id) => id === this.config.bot.id).size;
-        console.log('+', botReaction, reaction.users.cache);
+        // Если бота нет в списке, значит работаем с partial message
+        // И для добавления и для удаления данные по пользователям могут отличаться, прогреваем для обоих случаев
+        if (!botReaction) {
+            reaction.users.cache.clear();
+            await reaction.users.fetch();
+            botReaction = reaction.users.cache.filter((user, id) => id === this.config.bot.id).size;
+        }
 
         // Новое сервисное сообщение для добавления в группу друзей
         if (!botReaction) {
-            reaction.message.react(reaction.emoji.name);
+            await reaction.message.react(reaction.emoji.name);
             this.notifyAuthor(user, 'Поздравляем!', 'Сообщение для регистрации роли albion-friend добавлено');
             return;
         }
 
+        let roleName = this.config.roleManagement.friend.role.name;
+        let role = reaction.message.channel.guild.roles.cache.find(role => role.name === this.config.roleManagement.friend.role.name);
+        if (!role) {
+            throw new Error(`Роль не найдена ${roleName}`);
+        }
+
+        let assignUser = await reaction.message.guild.members.fetch(user.id);
         if (add) {
+            await assignUser.roles.add(role);
             console.log('Add user to friends')
         } else {
+            await assignUser.roles.remove(role);
             console.log('Remove user from friends')
         }
     }
