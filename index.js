@@ -7,6 +7,8 @@
  * Emoji
  * https://discordjs.guide/popular-topics/reactions.html#reacting-to-messages
  * https://github.com/AnIdiotsGuide/discordjs-bot-guide/blob/master/coding-guides/using-emojis.md
+ * Для получения кода эмоции - \+картинка эмоции в чат
+ * копируем и используем
  *
  * Разметочка
  * https://www.writebots.com/discord-text-formatting/
@@ -26,7 +28,7 @@ const ctaInfo = fs.readFileSync('./data/ctaHelp.md', 'utf8');
 const ctaDescription = fs.readFileSync('./data/ctaDescription.md', 'utf8');
 
 const Ocean = new OceanBot(config, emoji, ctaDescription, Discord, request);
-const client = new Discord.Client({partials: ['MESSAGE', 'REACTION']});
+const client = new Discord.Client({partials: ['MESSAGE', 'CHANNEL', 'REACTION']});
 
 let args;
 
@@ -109,66 +111,93 @@ client.on('messageDelete', (message) => {
 })
 
 client.on('messageReactionAdd', async (reaction, user) => {
-    /*
-    console.log(reaction);
-    reaction.message.reactions.cache.map((reactionIcon, reactionId) => {
-        console.log(reactionId);
-    });
-    */
     validateReaction(reaction).then(
-        reaction => {
-            // Реакцию проставил bot
-            if (config.bot.id === user.id) {
-                return null;
-            }
-            Ocean.joinMember(reaction, user);
-        },
-        error => {
-            console.log('AddReaction error', error);
-        }
+        messageReactionHandler(reaction, user, true),
+        error => console.log('AddReaction error', error)
     );
 });
 
 client.on('messageReactionRemove', async (reaction, user) => {
     validateReaction(reaction).then(
-        reaction => {
-            // reaction.me не проверяем, при отмене реакции, me - оставшийся голос
-            Ocean.leaveMember(reaction, user);
-        },
-        error => {
-            console.log('RemoveReaction error', error);
-        }
+        messageReactionHandler(reaction, user),
+        error => console.log('RemoveReaction error', error)
     );
 });
 
 client.on('raw', packet => {
-    //console.log(packet);
-    // We don't want this to run on unrelated packets
+    return;
+    // Обрабатываем только нужные события - реакции на старые сообщения, существовавшие до старта бота
     if (!['MESSAGE_REACTION_ADD', 'MESSAGE_REACTION_REMOVE'].includes(packet.t)) {
         return;
     }
-    return;
+
     // Grab the channel to check the message from
-    const channel = client.channels.get(packet.d.channel_id);
+    const channel = client.channels.cache.get(packet.d.channel_id);
+
     // There's no need to emit if the message is cached, because the event will fire anyway for that
-    if (channel.messages.has(packet.d.message_id)) return;
+    if (channel.messages.cache.has(packet.d.message_id)) {
+        return;
+    }
+
     // Since we have confirmed the message is not cached, let's fetch it
-    channel.fetchMessage(packet.d.message_id).then(message => {
+    channel.messages.fetch(packet.d.message_id).then(async message => {
         // Emojis can have identifiers of name:id format, so we have to account for that case as well
         const emoji = packet.d.emoji.id ? `${packet.d.emoji.name}:${packet.d.emoji.id}` : packet.d.emoji.name;
         // This gives us the reaction we need to emit the event properly, in top of the message object
-        const reaction = message.reactions.get(emoji);
+
+        message.reactions.cache.clear();
+        const reaction = await message.reactions.get(emoji);
+        if (!reaction) {
+            return;
+        }
+
+        // При первом запросе к сообщениям созданным до запуска бота кэш не заполнен
+        /*reaction.users.cache.clear();
+        await reaction.users.fetch();
+        console.log('fetched', reaction.users);*/
+
         // Adds the currently reacting user to the reaction's users collection.
-        if (reaction) reaction.users.set(packet.d.user_id, client.users.get(packet.d.user_id));
+        //let botUser = reaction.users.fetch().then(async res => await console.log('::', res));
+        /*if (botUser) {
+            reaction.users.cache.set(config.bot.id, botUser);
+        }*/
+        //reaction.users.cache.set(packet.d.user_id, client.users.cache.get(packet.d.user_id));
+
         // Check which type of event it is before emitting
         if (packet.t === 'MESSAGE_REACTION_ADD') {
-            client.emit('messageReactionAdd', reaction, client.users.get(packet.d.user_id));
+            console.log('emit messageReactionAdd');
+            client.emit('messageReactionAdd', reaction, client.users.cache.get(packet.d.user_id));
         }
         if (packet.t === 'MESSAGE_REACTION_REMOVE') {
-            client.emit('messageReactionRemove', reaction, client.users.get(packet.d.user_id));
+            console.log('emit messageReactionRemove');
+            client.emit('messageReactionRemove', reaction, client.users.cache.get(packet.d.user_id));
         }
     });
 });
+
+function messageReactionHandler(reaction, user, add = false) {
+    // Реакцию проставил-снял bot
+    if (config.bot.id === user.id) {
+        return null;
+    }
+
+    // Сервисное сообщение, назначение роли albion-friend
+    if (reaction.emoji.name === emoji.friendRole.icon) {
+        Ocean.addFriend(reaction, user, add);
+        return null;
+    }
+
+    // CTA
+    if (Object.values(emoji.cta).includes(reaction.emoji.name)) {
+        if (add) {
+            Ocean.joinMember(reaction, user);
+        } else {
+            // reaction.me не проверяем, при отмене реакции, me - оставшийся голос
+            Ocean.leaveMember(reaction, user);
+        }
+        return null;
+    }
+}
 
 function getArgs(message) {
     let channelID = message.channel.id;

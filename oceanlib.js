@@ -169,15 +169,15 @@ module.exports = class OceanBot {
 
     getRoleByReaction(reaction) {
         switch (reaction.emoji.name) {
-            case this.emoji.rl:
+            case this.emoji.cta.rl:
                 return 'rl';
-            case this.emoji.tank:
+            case this.emoji.cta.tank:
                 return 'tank';
-            case this.emoji.heal:
+            case this.emoji.cta.heal:
                 return 'heal';
-            case this.emoji.dd:
+            case this.emoji.cta.dd:
                 return 'dd';
-            case this.emoji.support:
+            case this.emoji.cta.support:
                 return 'support';
         }
 
@@ -315,11 +315,11 @@ module.exports = class OceanBot {
                                 this.notifyAdmin(message.guild, 'Новая активность', `${adminMessage}\n${apiResponse.result}`);
 
                                 // Временно без РЛ
-                                ///message.react(this.emoji.rl);
-                                message.react(this.emoji.tank);
-                                message.react(this.emoji.heal);
-                                message.react(this.emoji.dd);
-                                message.react(this.emoji.support);
+                                ///message.react(this.emoji.cta.rl);
+                                message.react(this.emoji.cta.tank);
+                                message.react(this.emoji.cta.heal);
+                                message.react(this.emoji.cta.dd);
+                                message.react(this.emoji.cta.support);
 
                                 message.reply(this.ctaDescription)
                                     .then(() => console.log(`Sent a reply to ${message.author.username}`))
@@ -378,6 +378,28 @@ module.exports = class OceanBot {
                 this.notifyError(message.author, message.guild, error);
             }
         );
+    }
+
+    addFriend(reaction, user, add = false) {
+        if (!this.config.admins.includes(user.id)) {
+            console.log('Недостаточно прав');
+        }
+
+        let botReaction = reaction.users.cache.filter((user, id) => id === this.config.bot.id).size;
+        console.log('+', botReaction, reaction.users.cache);
+
+        // Новое сервисное сообщение для добавления в группу друзей
+        if (!botReaction) {
+            reaction.message.react(reaction.emoji.name);
+            this.notifyAuthor(user, 'Поздравляем!', 'Сообщение для регистрации роли albion-friend добавлено');
+            return;
+        }
+
+        if (add) {
+            console.log('Add user to friends')
+        } else {
+            console.log('Remove user from friends')
+        }
     }
 
     /**
@@ -443,12 +465,13 @@ module.exports = class OceanBot {
                 if (apiResponse.status) {
                     this.notifyAuthor(user, 'Поздравляем!', `${apiResponse.result}`);
                 } else {
-                    //this.notifyAuthor(user, 'Ошибка выхода из списка участников активности', apiResponse.result);
-                    this.notifyAdmin(
-                        reaction.message.channel.guild,
-                        'Ошибка выхода из списка участников активности',
-                        `Пользователь ${user.username}\n${apiResponse.result}`
-                    );
+                    if (apiResponse.error.code) {
+                        this.notifyAdmin(
+                            reaction.message.channel.guild,
+                            'Ошибка выхода из списка участников активности',
+                            `Пользователь ${user.username}\n${apiResponse.result}`
+                        );
+                    }
                 }
             },
             error => {
