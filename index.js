@@ -111,6 +111,7 @@ client.on('messageDelete', (message) => {
 })
 
 client.on('messageReactionAdd', async (reaction, user) => {
+    return false;
     validateReaction(reaction).then(
         messageReactionHandler(reaction, user, true),
         error => console.log('AddReaction error', error)
@@ -122,57 +123,6 @@ client.on('messageReactionRemove', async (reaction, user) => {
         messageReactionHandler(reaction, user),
         error => console.log('RemoveReaction error', error)
     );
-});
-
-client.on('raw', packet => {
-    return;
-    // Обрабатываем только нужные события - реакции на старые сообщения, существовавшие до старта бота
-    if (!['MESSAGE_REACTION_ADD', 'MESSAGE_REACTION_REMOVE'].includes(packet.t)) {
-        return;
-    }
-
-    // Grab the channel to check the message from
-    const channel = client.channels.cache.get(packet.d.channel_id);
-
-    // There's no need to emit if the message is cached, because the event will fire anyway for that
-    if (channel.messages.cache.has(packet.d.message_id)) {
-        return;
-    }
-
-    // Since we have confirmed the message is not cached, let's fetch it
-    channel.messages.fetch(packet.d.message_id).then(async message => {
-        // Emojis can have identifiers of name:id format, so we have to account for that case as well
-        const emoji = packet.d.emoji.id ? `${packet.d.emoji.name}:${packet.d.emoji.id}` : packet.d.emoji.name;
-        // This gives us the reaction we need to emit the event properly, in top of the message object
-
-        message.reactions.cache.clear();
-        const reaction = await message.reactions.get(emoji);
-        if (!reaction) {
-            return;
-        }
-
-        // При первом запросе к сообщениям созданным до запуска бота кэш не заполнен
-        /*reaction.users.cache.clear();
-        await reaction.users.fetch();
-        console.log('fetched', reaction.users);*/
-
-        // Adds the currently reacting user to the reaction's users collection.
-        //let botUser = reaction.users.fetch().then(async res => await console.log('::', res));
-        /*if (botUser) {
-            reaction.users.cache.set(config.bot.id, botUser);
-        }*/
-        //reaction.users.cache.set(packet.d.user_id, client.users.cache.get(packet.d.user_id));
-
-        // Check which type of event it is before emitting
-        if (packet.t === 'MESSAGE_REACTION_ADD') {
-            console.log('emit messageReactionAdd');
-            client.emit('messageReactionAdd', reaction, client.users.cache.get(packet.d.user_id));
-        }
-        if (packet.t === 'MESSAGE_REACTION_REMOVE') {
-            console.log('emit messageReactionRemove');
-            client.emit('messageReactionRemove', reaction, client.users.cache.get(packet.d.user_id));
-        }
-    });
 });
 
 function messageReactionHandler(reaction, user, add = false) {
