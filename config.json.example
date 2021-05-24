@@ -12,6 +12,18 @@
 	    "main": ".....",
 	    "cta": "....."
 	},
+    "roleManagement": {
+        "friend": {
+            "role": {
+                "name": "Friend",
+                "id": "844960164377526313"
+            },
+            "channels": [
+                "698172640245973122",
+                "695941493810135060"
+            ]
+        }
+    },
 	"playingGame": "Albion Online",
 	"botToken": ".....",
 	"apiToken": ".....",
