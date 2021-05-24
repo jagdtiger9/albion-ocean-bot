@@ -381,10 +381,6 @@ module.exports = class OceanBot {
     }
 
     async addFriend(reaction, user, add = false) {
-        if (!this.config.admins.includes(user.id)) {
-            console.log('Недостаточно прав');
-        }
-
         // Partial message handling
         let botReaction = reaction.users.cache.filter((user, id) => id === this.config.bot.id).size;
         // Если бота нет в списке, значит работаем с partial message
@@ -397,6 +393,10 @@ module.exports = class OceanBot {
 
         // Новое сервисное сообщение для добавления в группу друзей
         if (!botReaction) {
+            if (!this.config.admins.includes(user.id)) {
+                console.log('Недостаточно прав для назначения сообщения для выдачи роли');
+                return;
+            }
             await reaction.message.react(reaction.emoji.name);
             this.notifyAuthor(user, 'Поздравляем!', 'Сообщение для регистрации роли albion-friend добавлено');
             return;
