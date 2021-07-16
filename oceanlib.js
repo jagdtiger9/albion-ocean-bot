@@ -6,7 +6,7 @@ module.exports = class OceanBot {
         this.request = request;
         this.baseApiUrl = 'https://albion.gudilap.ru';
 
-        this.ctaDescription = Object.entries(this.emoji).reduce((description, [key, value]) => {
+        this.ctaDescription = Object.entries(this.emoji.cta).reduce((description, [key, value]) => {
             return description.replace(`{${key}}`, value);
         }, ctaDescription);
     }
@@ -322,7 +322,11 @@ module.exports = class OceanBot {
                                 message.react(this.emoji.cta.support);
 
                                 message.reply(this.ctaDescription)
-                                    .then(() => console.log(`Sent a reply to ${message.author.username}`))
+                                    .then((reactMessage) => {
+                                        console.log(`Sent a reply to ${message.author.username}`);
+                                        //console.log(m);
+                                        reactMessage.react(this.emoji.remove);
+                                    })
                                     .catch(console.error);
                             } else {
                                 this.notifyAuthor(message.author, 'Ошибка регистрации активности', apiResponse.result);
@@ -382,14 +386,7 @@ module.exports = class OceanBot {
 
     async addFriend(reaction, user, add = false) {
         // Partial message handling
-        let botReaction = reaction.users.cache.filter((user, id) => id === this.config.bot.id).size;
-        // Если бота нет в списке, значит работаем с partial message
-        // И для добавления и для удаления данные по пользователям могут отличаться, прогреваем для обоих случаев
-        if (!botReaction) {
-            reaction.users.cache.clear();
-            await reaction.users.fetch();
-            botReaction = reaction.users.cache.filter((user, id) => id === this.config.bot.id).size;
-        }
+        let botReaction = this.getBotReaction(reaction);
 
         // Новое сервисное сообщение для добавления в группу друзей
         if (!botReaction) {
@@ -416,6 +413,33 @@ module.exports = class OceanBot {
             await assignUser.roles.remove(role);
             console.log('Remove user from friends')
         }
+    }
+
+    removeBotMessage(reaction) {
+        // Partial message handling
+        let botReaction = this.getBotReaction(reaction);
+
+        // Если нет соответствующей реакции бота - не удаляем сообщение
+        if (!botReaction) {
+            return;
+        }
+        reaction.message.delete({timeout: 100})
+            .then(msg => console.log(`Сообщение удалено по реакции "авто-удаление", автор ${msg.author.username}`))
+            .catch(console.error);
+    }
+
+    async getBotReaction(reaction) {
+        // Partial message handling
+        let botReaction = reaction.users.cache.filter((user, id) => id === this.config.bot.id).size;
+        // Если бота нет в списке, значит работаем с partial message
+        // И для добавления и для удаления данные по пользователям могут отличаться, прогреваем для обоих случаев
+        if (!botReaction) {
+            reaction.users.cache.clear();
+            await reaction.users.fetch();
+            botReaction = reaction.users.cache.filter((user, id) => id === this.config.bot.id).size;
+        }
+
+        return botReaction;
     }
 
     /**

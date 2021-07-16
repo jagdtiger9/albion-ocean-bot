@@ -136,6 +136,12 @@ function messageReactionHandler(reaction, user, add = false) {
         return null;
     }
 
+    // Удаление сообщения бота через эмоцию "автоудаления"
+    if (reaction.emoji.name === emoji.remove) {
+        Ocean.removeBotMessage(reaction);
+        return null;
+    }
+
     // CTA
     if (Object.values(emoji.cta).includes(reaction.emoji.name)) {
         if (add) {
