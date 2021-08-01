@@ -9,8 +9,8 @@
 		"....."
 	],
 	"botChannel": {
-	    "main": ".....",
-	    "cta": "....."
+	    "main": ["....."],
+	    "cta": ["....."]
 	},
     "roleManagement": {
         "friend": {

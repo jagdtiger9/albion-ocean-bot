@@ -97,7 +97,6 @@ client.on('messageDelete', (message) => {
         // Удаление сообщения созданного вне текущей сессии, автор не задан
         console.log(`The message is partial, ${message.id}, impossible to delete`);
     }
-
     if (!message.author) {
         return;
     }
@@ -156,7 +155,7 @@ function messageReactionHandler(reaction, user, add = false) {
 
 function getArgs(message) {
     let channelID = message.channel.id;
-    if (config.botChannel.main !== channelID) {
+    if (!config.botChannel.main.includes(channelID)) {
         return null;
     }
     // Если редактируемое-удаляемое сообщение было создано не во время текущей сессии бота, автор будет не определен
